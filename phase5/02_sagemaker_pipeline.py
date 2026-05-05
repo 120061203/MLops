@@ -141,8 +141,7 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=32,
     learning_rate=LR,
     evaluation_strategy="epoch",
-    save_strategy="epoch",
-    load_best_model_at_end=True,
+    save_strategy="no",
     report_to="none",
 )
 
