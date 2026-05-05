@@ -218,8 +218,8 @@ huggingface_estimator = HuggingFace(
     role=role,
     instance_count=1,
     instance_type="ml.m5.xlarge",
-    transformers_version="4.36",
-    pytorch_version="2.1",
+    transformers_version="4.28",
+    pytorch_version="2.0",
     py_version="py310",
     hyperparameters={
         "num_train_samples": 500,
@@ -282,7 +282,7 @@ from sagemaker.image_uris import retrieve
 container_uri = retrieve(
     framework="huggingface",
     region=region,
-    version="4.36",
+    version="4.28",
     py_version="py310",
     base_framework_version="pytorch2.1.0",
     image_scope="inference",
@@ -305,8 +305,8 @@ model_metrics = ModelMetrics(
 huggingface_model = HuggingFaceModel(
     model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
     role=role,
-    transformers_version="4.36",
-    pytorch_version="2.1",
+    transformers_version="4.28",
+    pytorch_version="2.0",
     py_version="py310",
     sagemaker_session=pipeline_session,
 )
