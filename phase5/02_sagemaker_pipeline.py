@@ -75,6 +75,7 @@ print(f"  ModelApprovalStatus: {model_approval_status.default_value}")
 print("\n=== 2. 準備訓練腳本 ===")
 
 import os
+os.makedirs("./phase5/scripts/train", exist_ok=True)
 os.makedirs("./phase5/scripts", exist_ok=True)
 
 # SageMaker Training Job 需要一個 train.py 作為入口
@@ -171,7 +172,7 @@ with open(os.path.join(OUTPUT_DIR, "metrics.json"), "w") as f:
 print(f"訓練完成，accuracy: {results['eval_accuracy']:.4f}")
 '''
 
-with open("./phase5/scripts/train.py", "w") as f:
+with open("./phase5/scripts/train/train.py", "w") as f:
     f.write(train_script)
 
 print("train.py 建立完成")
@@ -214,7 +215,7 @@ print("\n=== 3. 定義 Pipeline Steps ===")
 
 huggingface_estimator = HuggingFace(
     entry_point="train.py",
-    source_dir="./phase5/scripts",
+    source_dir="./phase5/scripts/train",
     role=role,
     instance_count=1,
     instance_type="ml.g4dn.xlarge",
