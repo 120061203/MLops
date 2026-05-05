@@ -22,7 +22,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade boto3 "sagemaker>=2.200.0" scikit-learn
+          python -m pip install --upgrade --force-reinstall "sagemaker>=2.200.0"
+          python -m pip install --upgrade boto3 scikit-learn
+          python -m pip show sagemaker
+          python -c "import sagemaker; print('version:', sagemaker.__version__)"
           python -c "from sagemaker.workflow.pipeline import Pipeline; print('sagemaker.workflow OK')"
 
       - name: Configure AWS credentials
