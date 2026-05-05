@@ -218,8 +218,8 @@ huggingface_estimator = HuggingFace(
     role=role,
     instance_count=1,
     instance_type="ml.m5.xlarge",
-    transformers_version="4.28",
-    pytorch_version="2.0",
+    transformers_version="4.26",
+    pytorch_version="1.13",
     py_version="py310",
     hyperparameters={
         "num_train_samples": 500,
@@ -293,8 +293,8 @@ model_metrics = ModelMetrics(
 huggingface_model = HuggingFaceModel(
     model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
     role=role,
-    transformers_version="4.28",
-    pytorch_version="2.0",
+    transformers_version="4.26",
+    pytorch_version="1.13",
     py_version="py310",
     sagemaker_session=pipeline_session,
 )
