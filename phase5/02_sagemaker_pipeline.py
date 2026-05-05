@@ -292,7 +292,7 @@ model_metrics = ModelMetrics(
         s3_uri=Join(
             on="/",
             values=[
-                step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"],
+                step_eval.properties.ProcessingOutputConfig.Outputs["evaluation"].S3Output.S3Uri,
                 "evaluation.json",
             ],
         ),
