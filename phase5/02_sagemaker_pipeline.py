@@ -277,18 +277,6 @@ print("  ProcessingStep（Evaluation）定義完成")
 # ─────────────────────────────────────────
 # 5. Register Step（登記到 Model Registry）
 # ─────────────────────────────────────────
-from sagemaker.image_uris import retrieve
-
-container_uri = retrieve(
-    framework="huggingface",
-    region=region,
-    version="4.28",
-    py_version="py310",
-    base_framework_version="pytorch2.0.0",
-    image_scope="inference",
-    instance_type="ml.m5.large",
-)
-
 model_metrics = ModelMetrics(
     model_statistics=MetricsSource(
         s3_uri=Join(
