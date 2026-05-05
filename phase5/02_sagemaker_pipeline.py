@@ -25,6 +25,7 @@ from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
 from sagemaker.workflow.properties import PropertyFile
 from sagemaker.workflow.parameters import ParameterFloat, ParameterString
 from sagemaker.workflow.model_step import ModelStep
+from sagemaker.workflow.pipeline_context import PipelineSession
 from sagemaker.huggingface import HuggingFace, HuggingFaceModel
 from sagemaker.sklearn.processing import SKLearnProcessor
 from sagemaker.processing import ProcessingInput, ProcessingOutput
@@ -43,6 +44,7 @@ role   = config["role"]
 bucket = config["bucket"]
 
 session = sagemaker.Session()
+pipeline_session = PipelineSession()
 
 print("=== SageMaker Pipeline 設定 ===")
 print(f"Region: {region}")
@@ -306,7 +308,7 @@ huggingface_model = HuggingFaceModel(
     transformers_version="4.37",
     pytorch_version="2.1",
     py_version="py310",
-    sagemaker_session=session,
+    sagemaker_session=pipeline_session,
 )
 
 step_register = ModelStep(
