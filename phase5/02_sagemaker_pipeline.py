@@ -284,7 +284,7 @@ container_uri = retrieve(
     region=region,
     version="4.28",
     py_version="py310",
-    base_framework_version="pytorch2.1.0",
+    base_framework_version="pytorch2.0.0",
     image_scope="inference",
     instance_type="ml.m5.large",
 )
