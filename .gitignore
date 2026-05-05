@@ -1,0 +1,20 @@
+# Virtual environment
+.venv/
+
+# Model weights and training outputs
+*.pth
+*.tar.gz
+phase3/checkpoints/
+phase3/finetuned_custom/
+phase3/finetuned_model/
+phase3/model_evaluated/
+phase4/model_package/
+
+# AWS config (contains account ID and IAM role)
+phase4/aws_config.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
