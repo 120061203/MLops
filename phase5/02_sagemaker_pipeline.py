@@ -220,7 +220,7 @@ huggingface_estimator = HuggingFace(
     instance_type="ml.m5.xlarge",
     transformers_version="4.26",
     pytorch_version="1.13",
-    py_version="py310",
+    py_version="py39",
     hyperparameters={
         "num_train_samples": 500,
         "epochs": 2,
@@ -295,7 +295,7 @@ huggingface_model = HuggingFaceModel(
     role=role,
     transformers_version="4.26",
     pytorch_version="1.13",
-    py_version="py310",
+    py_version="py39",
     sagemaker_session=pipeline_session,
 )
 
