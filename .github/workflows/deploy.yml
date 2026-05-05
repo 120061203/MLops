@@ -1,0 +1,48 @@
+name: Train and Deploy to SageMaker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    environment: AWS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install boto3 sagemaker scikit-learn
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Write aws_config.json
+        run: |
+          cat > phase4/aws_config.json <<EOF
+          {
+            "region": "${{ secrets.AWS_REGION }}",
+            "bucket": "sagemaker-${{ secrets.AWS_REGION }}-081743246838",
+            "role": "${{ secrets.SAGEMAKER_ROLE }}",
+            "account_id": "081743246838",
+            "s3_prefix": "mlops-phase4",
+            "model_s3_uri": "s3://sagemaker-${{ secrets.AWS_REGION }}-081743246838/mlops-phase4/model/model.tar.gz",
+            "endpoint_name": "mlops-sentiment-endpoint"
+          }
+          EOF
+
+      - name: Run SageMaker Pipeline (Train → Evaluate → Register → Deploy)
+        run: python phase5/02_sagemaker_pipeline.py
