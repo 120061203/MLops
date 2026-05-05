@@ -21,7 +21,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install boto3 "sagemaker[local]>=2.200.0" scikit-learn
+        run: pip install --upgrade boto3 "sagemaker>=2.200.0" scikit-learn
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
