@@ -224,7 +224,7 @@ huggingface_estimator = HuggingFace(
     pytorch_version="1.13",
     py_version="py39",
     hyperparameters={
-        "num_train_samples": 500,
+        "num_train_samples": 2000,
         "epochs": 2,
         "learning_rate": 2e-5,
     },
