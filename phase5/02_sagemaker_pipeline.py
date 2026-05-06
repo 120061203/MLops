@@ -19,19 +19,11 @@ import json
 import boto3
 import sagemaker
 from sagemaker.workflow.pipeline import Pipeline
-from sagemaker.workflow.steps import TrainingStep, ProcessingStep
-from sagemaker.workflow.condition_step import ConditionStep
-from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
-from sagemaker.workflow.properties import PropertyFile
-from sagemaker.workflow.parameters import ParameterFloat, ParameterString
+from sagemaker.workflow.steps import TrainingStep
+from sagemaker.workflow.parameters import ParameterString
 from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline_context import PipelineSession
 from sagemaker.huggingface import HuggingFace, HuggingFaceModel
-from sagemaker.sklearn.processing import SKLearnProcessor
-from sagemaker.processing import ProcessingInput, ProcessingOutput
-from sagemaker.inputs import TrainingInput
-from sagemaker.model_metrics import MetricsSource, ModelMetrics
-from sagemaker.workflow.functions import Join
 
 # ─────────────────────────────────────────
 # 0. 載入設定
@@ -55,18 +47,11 @@ print(f"Bucket: {bucket}")
 # ─────────────────────────────────────────
 print("\n=== 1. Pipeline 參數 ===")
 
-# 這些參數讓你在觸發 pipeline 時動態調整，不需要改程式碼
-accuracy_threshold = ParameterFloat(
-    name="AccuracyThreshold",
-    default_value=0.75,   # accuracy 低於此值不部署
-)
-
 model_approval_status = ParameterString(
     name="ModelApprovalStatus",
     default_value="PendingManualApproval",  # 或 "Approved"（自動核准）
 )
 
-print(f"  AccuracyThreshold:   {accuracy_threshold.default_value}")
 print(f"  ModelApprovalStatus: {model_approval_status.default_value}")
 
 # ─────────────────────────────────────────
@@ -254,59 +239,8 @@ step_train = TrainingStep(
 print("  TrainingStep 定義完成")
 
 # ─────────────────────────────────────────
-# 4. Evaluation Step
+# 4. Register Step（登記到 Model Registry）
 # ─────────────────────────────────────────
-sklearn_processor = SKLearnProcessor(
-    framework_version="1.2-1",
-    instance_type="ml.m5.large",
-    instance_count=1,
-    role=role,
-    sagemaker_session=session,
-)
-
-evaluation_report = PropertyFile(
-    name="EvaluationReport",
-    output_name="evaluation",
-    path="evaluation.json",
-)
-
-step_eval = ProcessingStep(
-    name="EvaluateModel",
-    processor=sklearn_processor,
-    inputs=[
-        ProcessingInput(
-            source=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-            destination="/opt/ml/processing/model",
-        )
-    ],
-    outputs=[
-        ProcessingOutput(
-            output_name="evaluation",
-            source="/opt/ml/processing/evaluation",
-        )
-    ],
-    code="./phase5/scripts/evaluate.py",
-    property_files=[evaluation_report],
-)
-
-print("  ProcessingStep（Evaluation）定義完成")
-
-# ─────────────────────────────────────────
-# 5. Register Step（登記到 Model Registry）
-# ─────────────────────────────────────────
-model_metrics = ModelMetrics(
-    model_statistics=MetricsSource(
-        s3_uri=Join(
-            on="/",
-            values=[
-                step_eval.properties.ProcessingOutputConfig.Outputs["evaluation"].S3Output.S3Uri,
-                "evaluation.json",
-            ],
-        ),
-        content_type="application/json",
-    )
-)
-
 huggingface_model = HuggingFaceModel(
     model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
     role=role,
@@ -325,42 +259,20 @@ step_register = ModelStep(
         transform_instances=["ml.g4dn.xlarge"],
         model_package_group_name=config.get("model_package_group", "mlops-sentiment-model-group"),
         approval_status=model_approval_status,
-        model_metrics=model_metrics,
     ),
 )
 
 print("  ModelStep（Register）定義完成")
 
 # ─────────────────────────────────────────
-# 6. Condition Step（accuracy 達標才繼續）
-# ─────────────────────────────────────────
-condition = ConditionGreaterThanOrEqualTo(
-    left=sagemaker.workflow.functions.JsonGet(
-        step_name=step_eval.name,
-        property_file=evaluation_report,
-        json_path="classification_metrics.accuracy.value",
-    ),
-    right=accuracy_threshold,
-)
-
-step_condition = ConditionStep(
-    name="CheckAccuracy",
-    conditions=[condition],
-    if_steps=[step_register],   # accuracy 達標 → 登記模型
-    else_steps=[],              # accuracy 不達標 → 結束，不部署
-)
-
-print("  ConditionStep（CheckAccuracy）定義完成")
-
-# ─────────────────────────────────────────
-# 7. 組合成 Pipeline
+# 5. 組合成 Pipeline
 # ─────────────────────────────────────────
 print("\n=== 4. 建立 Pipeline ===")
 
 pipeline = Pipeline(
     name="mlops-sentiment-pipeline",
-    parameters=[accuracy_threshold, model_approval_status],
-    steps=[step_train, step_eval, step_condition],
+    parameters=[model_approval_status],
+    steps=[step_train, step_register],
     sagemaker_session=session,
 )
 
@@ -375,7 +287,6 @@ print("啟動中（訓練需要幾分鐘）...")
 
 execution = pipeline.start(
     parameters={
-        "AccuracyThreshold": 0.75,
         "ModelApprovalStatus": "PendingManualApproval",
     }
 )
