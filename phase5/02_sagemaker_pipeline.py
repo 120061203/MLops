@@ -180,16 +180,33 @@ print("train.py 建立完成")
 eval_script = '''
 import json, os
 
-model_dir   = "/opt/ml/processing/model"
-output_dir  = "/opt/ml/processing/evaluation"
+model_dir  = "/opt/ml/processing/model"
+output_dir = "/opt/ml/processing/evaluation"
 os.makedirs(output_dir, exist_ok=True)
 
-with open(os.path.join(model_dir, "metrics.json")) as f:
+# 列出目錄內容方便 debug
+print("=== model_dir contents ===")
+for root, dirs, files in os.walk(model_dir):
+    for f in files:
+        print(os.path.join(root, f))
+
+# 遞迴搜尋 metrics.json
+metrics_path = None
+for root, dirs, files in os.walk(model_dir):
+    if "metrics.json" in files:
+        metrics_path = os.path.join(root, "metrics.json")
+        break
+
+if metrics_path is None:
+    raise FileNotFoundError(f"metrics.json not found anywhere in {model_dir}")
+
+print(f"Found metrics.json at: {metrics_path}")
+
+with open(metrics_path) as f:
     metrics = json.load(f)
 
 print(f"Accuracy: {metrics[\'accuracy\']}")
 
-# 輸出 evaluation report（SageMaker Pipeline 用來判斷 Condition）
 report = {
     "classification_metrics": {
         "accuracy": {"value": metrics["accuracy"]},
